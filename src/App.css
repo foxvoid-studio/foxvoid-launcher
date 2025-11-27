@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Apply default styles for the launcher */
+body {
+    /* Use the custom color defined in tailwind.config.js */
+    @apply bg-gray-800 text-white overflow-hidden;
+    /* Prevent text selection to feel like a native app */
+    user-select: none;
+}
