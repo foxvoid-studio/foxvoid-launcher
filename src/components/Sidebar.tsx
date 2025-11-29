@@ -1,7 +1,11 @@
-import { Gamepad2, Hammer, Settings } from "lucide-react";
+import { Gamepad2, Hammer, Settings, LogOut } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar() {
+    // Retrieve user info and logout function from our Context
+    const { userInfo, logout } = useAuth();
+
     const linkClass = ({ isActive }: { isActive: boolean }) =>
         `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
             ? 'bg-orange-800 text-white'
@@ -31,12 +35,46 @@ export default function Sidebar() {
                 </NavLink>
             </nav>
 
-            {/* Bottom Actions */}
-            <div className="p-4 border-t border-gray-800">
-                <button className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white w-full">
+            {/* Bottom Actions & User Profile */}
+            <div className="p-4 border-t border-gray-800 flex flex-col gap-1">
+                {/* Settings Button */}
+                <button className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white w-full rounded-lg hover:bg-gray-800 transition-colors text-left">
                     <Settings size={20} />
                     <span>Settings</span>
                 </button>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-800 my-2 mx-2"></div>
+
+                {/* User Info Section */}
+                <div className="flex items-center gap-3 px-2 py-2">
+                    {/* Avatar */}
+                    <img 
+                        src={userInfo?.avatar || "https://ui-avatars.com/api/?name=User&background=random"} 
+                        alt="User" 
+                        className="w-10 h-10 rounded-full border border-gray-700 object-cover"
+                    />
+                    
+                    {/* Username & Status */}
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">
+                            {userInfo?.username || "Guest"}
+                        </p>
+                        <p className="text-xs text-green-500 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            Online
+                        </p>
+                    </div>
+
+                    {/* Logout Button (Icon only to save space) */}
+                    <button 
+                        onClick={logout}
+                        title="Logout"
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                        <LogOut size={18} />
+                    </button>
+                </div>
             </div>
         </div>
     );
