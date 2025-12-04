@@ -38,10 +38,10 @@ export default function Sidebar() {
             {/* Bottom Actions & User Profile */}
             <div className="p-4 border-t border-gray-800 flex flex-col gap-1">
                 {/* Settings Button */}
-                <button className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white w-full rounded-lg hover:bg-gray-800 transition-colors text-left">
+                <NavLink to="/settings" className={linkClass}>
                     <Settings size={20} />
                     <span>Settings</span>
-                </button>
+                </NavLink>
 
                 {/* Divider */}
                 <div className="h-px bg-gray-800 my-2 mx-2"></div>

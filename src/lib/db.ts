@@ -18,7 +18,7 @@ export async function initDB() {
     // "foxvoid.db" will be created in the AppData folder
     dbInstance = await Database.load("sqlite:foxvoid.db");
 
-    // Create the table
+    // Projects Table
     await dbInstance.execute(`
         CREATE TABLE IF NOT EXISTS projects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +26,15 @@ export async function initDB() {
             path TEXT NOT NULL,
             last_opened DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )    
+        );  
+    `);
+
+    // Settings Table (Key-Value store)
+    await dbInstance.execute(`
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
     `);
 
     return dbInstance;
@@ -35,13 +43,15 @@ export async function initDB() {
 // Add a new project to the database
 export async function addProjectToDB(name: string, path: string) {
     const db = await initDB();
+    
+    // Normalize path to avoid double slashes like "C:/Users//Project"
+    // Remove trailing slash if present before joining
+    const cleanPath = path.replace(/[\\/]$/, "");
+    // Detect separator based on OS style (simplified check)
+    const separator = cleanPath.includes("\\") ? "\\" : "/";
+    const fullPath = `${cleanPath}${separator}${name}`;
 
-    // We construct the full path manually or rely on what was sent to Rust
-    // Ideally, we should use the path API, but simple concatenation works for storage
-    // Assuming 'path' is the parent folder
-    const fullPath = path.endsWith('/') || path.endsWith('\\') 
-        ? `${path}${name}` 
-        : `${path}/${name}`;
+    console.log(`Saving project to DB: ${name} at ${fullPath}`); // Debug log
 
     await db.execute(
         'INSERT INTO projects (name, path, last_opened) VALUES ($1, $2, CURRENT_TIMESTAMP)',
@@ -59,4 +69,27 @@ export async function getProjects(): Promise<Project[]> {
 export async function deleteProjectFromDB(id: number) {
     const db = await initDB();
     await db.execute('DELETE FROM projects WHERE id = $1', [id]);
+}
+
+export async function saveSetting(key: string, value: string) {
+    const db = await initDB();
+
+    // SQLite upsert syntax (INSERT OR REPLACE)
+    await db.execute(
+        'INSERT OR REPLACE INTO settings (key, value) VALUES ($1, $2);',
+        [key, value]
+    );
+}
+
+export async function getSetting(key: string): Promise<string | null> {
+    const db = await initDB();
+    const result = await db.select<{ value: string }[]>(
+        'SELECT value FROM settings WHERE key = $1;',
+        [key]
+    );
+
+    if (result.length > 0) {
+        return result[0].value;
+    }
+    return null;
 }

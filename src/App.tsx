@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import PlayHub from "./pages/PlayHub";
 import DevHub from "./pages/DevHub";
 import LoginPage from "./pages/LoginPage";
+import Settings from "./pages/Settings";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "./App.css";
 
@@ -36,6 +37,7 @@ function AppRoutes() {
                 <Route element={<ProtectedLayout />}>
                     <Route path="/" element={<PlayHub />} />
                     <Route path="/create" element={<DevHub />} />
+                    <Route path="/settings" element={<Settings />} />
                 </Route>
             </Routes>
         </AuthProvider>

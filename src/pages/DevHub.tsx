@@ -2,12 +2,15 @@ import { useState, useEffect } from "react"
 import { invoke } from "@tauri-apps/api/core"
 import { open } from '@tauri-apps/plugin-dialog';
 import { FolderOpen, X, Code, Trash2, ExternalLink } from "lucide-react";
-import { initDB, getProjects, addProjectToDB, deleteProjectFromDB, Project } from "../lib/db";
+import { initDB, getProjects, addProjectToDB, deleteProjectFromDB, Project, getSetting } from "../lib/db";
+import { useNavigate } from "react-router-dom";
 
 // Configuration for the template
 const TEMPLATE_URL = "https://github.com/foxvoid-studio/fantasy-craft-default-template.git"
 
 export default function DevHub() {
+    const navigate = useNavigate();
+
     // UI States
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -94,6 +97,28 @@ export default function DevHub() {
         }
     }
 
+    const handleOpenInEditor = async (projectPath: string) => {
+        try {
+            const editorPath = await getSetting('default_editor_path');
+
+            if (!editorPath) {
+                if(confirm("Aucun éditeur configuré. Voulez-vous aller dans les paramètres ?")) {
+                    navigate("/settings");
+                }
+                return;
+            }
+
+            await invoke('open_project_in_editor', {
+                projectPath: projectPath,
+                editorPath: editorPath
+            });
+        }
+        catch (error) {
+            console.error("Failed to open editor:", error);
+            alert("Impossible d'ouvrir l'éditeur:" + error);
+        }
+    }
+
     return (
         <div className="p-8 relative min-h-full">
             {/* Header */}
@@ -146,10 +171,17 @@ export default function DevHub() {
                         </p>
 
                         <div className="flex gap-2 mt-4">
-                            <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg text-sm font-medium transition">
+                            <button
+                                onClick={() => handleOpenInEditor(proj.path)}
+                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg text-sm font-medium transition"
+                            >
                                 Open Editor
                             </button>
-                            <button className="px-3 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition border border-gray-700">
+                            <button
+                                onClick={() => invoke('start_login_flow', { url: proj.path })}
+                                className="px-3 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition border border-gray-700"
+                                title="Open folder"
+                            >
                                 <ExternalLink size={16} />
                             </button>
                         </div>
